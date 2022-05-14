@@ -1,0 +1,44 @@
+# This workflow uses actions that are not certified by GitHub.
+# They are provided by a third-party and are governed by
+# separate terms of service, privacy policy, and support
+# documentation.
+
+name: Deploy to kubernetes
+
+on:
+  push:
+    branches:
+      - master
+env:
+  SERIVCE_ACCOUNT_SECRET: ${{ secrets.SERIVCE_ACCOUNT_SECRET }}
+  KUBE_NAMESPACE: default
+  SHORT_SHA: ""
+jobs:
+  deploy-to-kubernetes:
+    name: Deploy to kubernetes
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+      contents: read
+    steps:
+      - name: Add SHORT_SHA env property with commit short sha
+        run: echo "SHORT_SHA=`echo ${GITHUB_SHA} | cut -c1-8`" >> $GITHUB_ENV
+      - name: Check out the repo
+        uses: actions/checkout@v3
+
+      - name: Set context
+        uses: azure/k8s-set-context@v2
+        with:
+          method: service-account
+          k8s-url: https://kubernetes.default.svc.j-burg11.dev:6443
+          k8s-secret: $SERIVCE_ACCOUNT_SECRET
+      - name: Deploy
+        uses: Azure/k8s-deploy@v1.4
+        with:
+          namespace: "qronicl"
+          manifests: |
+            kubernetes/statefulset/mariadb.yaml
+          # images: ""
+          # imagepullsecrets: |
+          #   image-pull-secret1
+          kubectl-version: "latest"

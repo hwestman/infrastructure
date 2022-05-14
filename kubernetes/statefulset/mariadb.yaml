@@ -1,0 +1,68 @@
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: mariadb
+  namespace: default
+spec:
+  ports:
+    - protocol: TCP
+      port: 3306
+  selector:
+    app: mariadb
+  type: ClusterIP
+
+---
+
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mariadb
+  namespace: default
+spec:
+  serviceName: "mariadb"
+  selector:
+    matchLabels:
+      app: mariadb
+  template:
+    metadata:
+      labels:
+        app: mariadb
+    spec:
+      containers:
+      - image: mariadb:10.4.12
+        name: mariadb
+        env:
+          # Use secret in real usage
+        - name: MYSQL_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mariadb
+              key: MYSQL_ROOT_PASSWORD
+        ports:
+        - containerPort: 3306
+          name: mariadb
+        volumeMounts:
+        - name: mariadb-persistent-storage
+          mountPath: /var/lib/mysql
+          subPath: mariadb/var/lib/mysql
+      volumes:
+      - name: mariadb-persistent-storage
+        persistentVolumeClaim:
+          claimName: mariadb-pvc
+
+---
+
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: mariadb-pvc
+  annotations:
+    # nfs.io/storage-path: "test-path" # not required, depending on whether this annotation was shown in the storage class description
+spec:
+  storageClassName: smb-retain
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 5Gi
