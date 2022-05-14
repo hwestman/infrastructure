@@ -31,11 +31,11 @@ jobs:
         with:
           method: service-account
           k8s-url: https://j-burg11.dev:7443
-          k8s-secret: $SERIVCE_ACCOUNT_SECRET
+          k8s-secret: ${{ secrets.SERIVCE_ACCOUNT_SECRET }}
       - name: Deploy
         uses: Azure/k8s-deploy@v1.4
         with:
-          namespace: "qronicl"
+          namespace: default
           manifests: |
             kubernetes/statefulset/mariadb.yaml
           # images: ""
