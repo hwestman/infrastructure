@@ -8,7 +8,7 @@ name: Deploy to kubernetes
 on:
   push:
     branches:
-      - master
+      - main
 env:
   SERIVCE_ACCOUNT_SECRET: ${{ secrets.SERIVCE_ACCOUNT_SECRET }}
   KUBE_NAMESPACE: default
